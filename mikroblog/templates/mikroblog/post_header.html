@@ -1,0 +1,20 @@
+<div class="card-header" style="height: 55px;">
+    {% include "mikroblog/user_dropdown_post.html" %}
+    <div class="like" style="float: right; margin-right: 20px;">
+        {% if user in post.liked.all %}
+            <a id="like{{ post.id }}" onclick="like({{ post.id }}, {{ post.total_likes }})"><i id="thumb{{ post.id }}"
+                                                                                               class="fas fa-thumbs-up"
+                                                                                               style="color: green;"></i></a>
+            <span id="numOfLikes{{ post.id }}">{{ post.total_likes }}</span>
+        {% else %}
+            {% if user != post.author %}
+                <a id="like{{ post.id }}" onclick="like({{ post.id }}, {{ post.total_likes }})"><i
+                        id="thumb{{ post.id }}" class="fas fa-thumbs-up"></i></a>
+            {% else %}
+                <a id="like{{ post.id }}" onclick="alert(`You can't like your own post!`)"><i id="thumb{{ post.id }}"
+                                                                                              class="fas fa-thumbs-up"></i></a>
+            {% endif %}
+            <span id="numOfLikes{{ post.id }}">{{ post.total_likes }}</span>
+        {% endif %}
+    </div>
+</div>

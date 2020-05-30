@@ -1,0 +1,13 @@
+{% extends 'mikroblog/base_index.html' %}
+
+
+{% block post_form %}
+    {% include 'mikroblog/add_post_form.html' %}
+{% endblock %}
+{% block post_content %}
+    {% for post in posts %}
+        {% include 'mikroblog/post.html' %}
+    {% endfor %}
+{% endblock %}
+
+

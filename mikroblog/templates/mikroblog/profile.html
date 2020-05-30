@@ -1,0 +1,24 @@
+{% extends 'mikroblog/index.html' %}
+
+{% block post_form %}
+
+{% endblock %}
+{% block profile_info %}
+    <h2 class="text-center">{{ user_profile_data.username }} user profile</h2>
+    <div style="text-align: center; margin-top: 70px;">
+        <img src="{{ user_profile_data.image.url }}" style="width: 100px; height: 100px;">
+    </div>
+    <div class="statistics">
+        <div class="iloscwpisow text-center">
+            <h3>{{ posts.count }}</h3>
+            <h5>written posts</h5>
+        </div>
+        <div class="ilosckomentarzy text-center">
+            <h3>{{ user_comments_count }}</h3>
+            <h5>written comments</h5>
+        </div>
+    </div>
+{% endblock %}
+
+
+

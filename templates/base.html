@@ -1,0 +1,77 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'mikroblog/style.css' %}">
+
+
+    <script src="https://kit.fontawesome.com/0177c65898.js" crossorigin="anonymous"></script>
+    <title>Mikroblog</title>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand" href="{% url 'index' %}">Mikroblog</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        {% if not user.is_authenticated %}
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'register' %}">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Login</a>
+                </li>
+            </ul>
+        {% else %}
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item" style="margin-right: 21rem;">
+                    <div class="dropdown nav-link">
+                        <a onclick="getNotifications()" class="autorwpisu" id="notificationsButton"
+                           style="cursor: pointer;">Check notifications</a>
+                        <div class="myDropdown notifications dropdown-content" id="notifications" style="z-index: 100;">
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="dropdown nav-link">
+                        <a onclick="getBlacklist()" id="blackListButton" style="cursor: pointer;">Check your
+                            blacklist</a>
+                        <div class="myDropdown blacklist dropdown-content" id="blacklist" style="z-index: 100;">
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'change' %}">Change user data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">{{ user.username }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        {% endif %}
+    </div>
+</nav>
+{% block content %}
+{% endblock %}
+<script src="{% static 'mikroblog/main.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+</body>
+</html>

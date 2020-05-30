@@ -1,0 +1,8 @@
+{% if user.is_authenticated %}
+    <form id="add-post-form" method="POST" style="margin: auto; max-width: 600px; margin-bottom: 30px;">
+        {% csrf_token %}
+        <textarea rows="5" cols="60" name="content_post" placeholder="Type here" class="form-control" required
+                  autofocus></textarea>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Add post</button>
+    </form>
+{% endif %}

@@ -1,0 +1,10 @@
+<div class="card-footer">
+    {% include 'mikroblog/add_comment_form.html' %}
+    <div class="komentarze komentarze{{ post.id }}">
+        {% for comment in comments %}
+            {% if comment.to_post == post %}
+                {% include "mikroblog/user_dropdown_comment.html" %}
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>

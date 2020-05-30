@@ -1,0 +1,35 @@
+<a class="avatar" href="{% url 'profile' post.author %}">
+    <img src="{{ post.author.image.url }}">
+</a>
+<div class="author" style="display: inline-block; position: relative; top: -8px;">
+    {% if user == post.author %}
+        <div class="dropdown">
+            <a onclick="dropDownPost({{ post.author.username }}, {{ post.id }})" class="autorwpisu{{ post.id }}"
+                    {% if post.author.is_staff %} style="cursor: pointer; color: gold;" {% else %}
+               style="cursor: pointer; color: lime;" {% endif %}><b>{{ post.author }}</b>
+            </a>
+            <div class="myDropdown {{ post.author.username }} entry{{ post.id }} dropdown-content"
+                 id="{{ post.author }}" style="z-index: 100;">
+                <a href="{% url 'profile' post.author %}">Profile</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="dropdown">
+            <a onclick="dropDownPost({{ post.author.username }}, {{ post.id }})" class="autorwpisu{{ post.id }}"
+               style="cursor: pointer;">{{ post.author }}</a>
+            <div class="myDropdown {{ post.author.username }} entry{{ post.id }} dropdown-content"
+                 id="{{ post.author }}" style="z-index: 100;">
+                <a href="{% url 'profile' post.author %}">Profile</a>
+                <a href="{% url 'block_user' post.author.id %}">Block user</a>
+            </div>
+        </div>
+    {% endif %}
+    <br>
+    <a href="{% url 'post' post.id %}">
+        <time class="timeago" style="position: relative;"
+              datetime="{{ post.pub_date }}">{{ post.pub_date|date:"U" }}</time>
+    </a>
+</div>
+{% if post.author == user %}
+    <a href="{% url 'delete' post.id %}" style="float: right;"><i class="fas fa-trash-alt" title="Delete"></i></a>
+{% endif %}

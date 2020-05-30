@@ -1,0 +1,221 @@
+html, body {
+    height: 100vh;
+}
+
+body {
+    margin: 0;
+    position: relative;
+    background: #1e272e;
+    color: white;
+}
+
+.dodajwpis {
+    color: white;
+    width: 500px;
+    position: relative;
+    margin-top: 200px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.dodajwpisbtn {
+    margin-top: 15px;
+}
+
+.dodajwpis textarea {
+    resize: vertical;
+    max-height: 150px;
+    min-height: 100px;
+    color: white;
+    border: none;
+}
+
+.card {
+    margin: 0 auto;
+}
+
+.usunwpis {
+    border: none;
+    outline: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    color: red;
+}
+
+form {
+    margin: 0;
+}
+
+.komentarz {
+/ / width: 250 px;
+/ / padding: 5 px;
+/ / margin-top: 10 px;
+/ / display: inline-block;
+    background-color: #1e272e;
+/ / color: white;
+/ / border: none;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.komentarz:focus {
+    background-color: #1e272e;
+    color: white;
+}
+
+.komentarze {
+    margin-top: 10px;
+}
+
+.sort {
+    margin: 15px;
+}
+
+.btn {
+    margin-right: 10px;
+}
+
+.usunkomentarz {
+    margin-left: 10px;
+    color: grey;
+}
+
+.usunkomentarz:hover {
+    cursor: pointer;
+}
+
+.card {
+    max-width: 40rem;
+    color: white;
+}
+
+.autorwpisu {
+    text-decoration: underline;
+}
+
+.timeago {
+    font-size: 11px;
+/ / position: relative;
+    top: -6px;
+    color: grey;
+}
+
+.container {
+    min-height: 100%;
+}
+
+footer {
+    padding: 20px;
+    text-align: center;
+}
+
+.settings_change {
+    display: inline-block;
+    width: 300px;
+    padding: 5px;
+    color: white;
+    border: none;
+}
+
+.settings_change:focus {
+    color: white;
+}
+
+.settings {
+    display: grid;
+    justify-content: center;
+}
+
+.changepassword {
+    margin: 5px 10px 10px 0;
+}
+
+.dropdown-menu {
+    padding: 0;
+    margin-left: -43px;
+}
+
+.dropdown-item {
+    color: white;
+    background-color: #2d3436;
+}
+
+.dropdown-item:hover {
+    background-color: #1e272e;
+    color: white;
+}
+
+.datakomentarza {
+    display: inline-block;
+    float: right;
+}
+
+img {
+    margin-top: -48px;
+    margin-right: 3px;
+}
+
+.statistics {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 25px;
+}
+
+.statistics > div {
+    padding: 15px;
+}
+
+@media (max-width: 500px) {
+    .dodajwpis {
+        width: 95%;
+    }
+}
+
+.taglike-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    margin-left: 12px;
+}
+
+.avatar:hover {
+    color: transparent;
+}
+
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 4px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #007bff;
+}
+
+.show {
+    display: block;
+}
+
+.notificationText:hover {
+    background-color: #007bff;
+}

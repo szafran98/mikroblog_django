@@ -1,0 +1,11 @@
+{% extends 'mikroblog/post_details.html' %}
+
+{% block post_content %}
+    <form id="edit-post-form" method="POST"
+          style="margin: auto; max-width: 600px; margin-bottom: 30px;">{% csrf_token %}
+        <textarea rows="5" cols="60" name="content_post" placeholder="Type here" class="form-control" required
+                  autofocus>
+{{ post.content_post }}{{ post.tags }}</textarea>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Edit post</button>
+    </form>
+{% endblock %}

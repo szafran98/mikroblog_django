@@ -1,0 +1,16 @@
+<div class="card-body">
+    <p class="card-text">
+        {% for word in post.content_post.split %}
+            {% if '@' in word %}
+                <a href="{% url 'profile' word|slice:"1:" %}">{{ word }}</a>
+            {% elif '#' in word %}
+                <a href="{% url 'tag' word %}">{{ word }}</a>
+            {% else %}
+                {{ word }}
+            {% endif %}
+        {% endfor %}
+    </p>
+    {% if post.author == user %}
+        <a href="{% url 'edit' post.id %}" style="float: right;"><i class="fas fa-edit" title="Edit"></i></a>
+    {% endif %}
+</div>

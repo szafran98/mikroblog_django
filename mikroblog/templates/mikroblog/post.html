@@ -1,0 +1,11 @@
+
+
+{% if post.author.is_staff %}
+    <div class="card bg-dark mb-3" id="wpis{{ post.id }}" style="border: 1px solid gold;">
+{% else %}
+    <div class="card bg-dark mb-3" id="wpis{{ post.id }}">
+{% endif %}
+{% include 'mikroblog/post_header.html' %}
+{% include 'mikroblog/post_body.html' %}
+{% include 'mikroblog/post_fotter.html' %}
+</div>

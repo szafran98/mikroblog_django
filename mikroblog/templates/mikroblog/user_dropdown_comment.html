@@ -1,0 +1,61 @@
+{% if comment.author.is_staff %}
+    <div class="komentarz komentarztresc" style="border-left-style: solid; border-color: gold;">
+        <img src="{{ comment.author.image.url }}" height="25" width="25" style="margin-top: 0">
+        <div class="dropdown">
+            <a onclick="dropDownComment({{ comment.author }}, {{ comment.id }})" class="autorwpisu{{ comment.id }}"
+               style="cursor: pointer; color: gold;"><b>{{ comment.author }}:</b></a>
+            <div class="myDropdown {{ comment.author }} entry{{ comment.id }} dropdown-content"
+                 id="{{ comment.author }}" style="z-index: 100;">
+                {% if user == comment.author %}
+                    <a href="{% url 'profile' comment.author %}">Profile</a>
+                {% else %}
+                    <a href="{% url 'profile' comment.author %}">Profile</a>
+                    <a href="{% url 'block_user' comment.author.id %}">Block user</a>
+                {% endif %}
+            </div>
+        </div>
+        {{ comment.content_comment }}
+        <div class="datakomentarza">
+            <time class="timeago" datetime="{{ comment.pub_date|date:"U" }}">{{ comment.pub_date|date:"U" }}</time>
+        </div>
+    </div>
+{% elif comment.author == post.author %}
+    <div class="komentarz komentarztresc" style="border-left-style: solid; border-color: lime;">
+        <img src="{{ comment.author.image.url }}" height="25" width="25" style="margin-top: 0">
+        <div class="dropdown">
+            <a onclick="dropDownComment({{ comment.author }}, {{ comment.id }})" class="autorwpisu{{ comment.id }}"
+               style="cursor: pointer; color: lime"><b>{{ comment.author }}:</b></a>
+            <div class="myDropdown {{ comment.author }} entry{{ comment.id }} dropdown-content"
+                 id="{{ comment.author }}" style="z-index: 100;">
+                {% if user == comment.author %}
+                    <a href="{% url 'profile' comment.author %}">Profile</a>
+                {% else %}
+                    <a href="{% url 'profile' comment.author %}">Profile</a>
+                    <a href="{% url 'block_user' comment.author.id %}">Block user</a>
+                {% endif %}
+            </div>
+        </div>
+        {{ comment.content_comment }}
+        <div class="datakomentarza">
+            <time class="timeago" datetime="{{ comment.pub_date|date:"U" }}">{{ comment.pub_date|date:"U" }}</time>
+        </div>
+    </div>
+{% else %}
+    <div class="komentarz komentarztresc">
+        <img src="{{ comment.author.image.url }}" height="25" width="25" style="margin-top: 0">
+        <div class="dropdown">
+            <a onclick="dropDownComment({{ comment.author }}, {{ comment.id }})" class="autorwpisu{{ comment.id }}"
+               style="cursor: pointer;">{{ comment.author }}:</a>
+            <div class="myDropdown {{ comment.author }} entry{{ comment.id }} dropdown-content"
+                 id="{{ comment.author }}" style="z-index: 100;">
+                <a href="{% url 'profile' comment.author %}">Profile</a>
+                <a href="{% url 'block_user' comment.author.id %}">Block user</a>
+            </div>
+        </div>
+        {{ comment.content_comment }}
+        <div class="datakomentarza">
+            <time class="timeago" datetime="{{ comment.pub_date|date:"U" }}">{{ comment.pub_date|date:"U" }}</time>
+        </div>
+    </div>
+{% endif %}
+

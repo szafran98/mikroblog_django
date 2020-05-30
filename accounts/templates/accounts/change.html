@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <style>
+        html {
+            margin: 0px;
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            margin: 0px;
+            min-height: 100%;
+            width: 100%;
+            background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
+        }
+
+        .form-signin {
+            width: 333px;
+
+            position: fixed;
+            top: 50%;
+            left: 50%;
+
+            transform: translate(-50%, -50%);
+        }
+
+        .errorlist.nonfield {
+            padding-left: 20px !important;
+            padding-top: 20px;
+
+        }
+
+        .register-error {
+            text-align: center;
+            padding-top: 10px;
+            margin-bottom: 0;
+        }
+    </style>
+
+
+    <form class="form-signin" method="POST" enctype="multipart/form-data">{% csrf_token %}
+        <h1 class="h3 mb-3 font-weight-normal" align="center">Change user data</h1>
+
+        <input type="password" name="password1" id="inputPassword1" class="form-control" placeholder="Password"
+               required>
+        <input type="password" name="password2" id="inputPassword2" class="form-control" placeholder="Repeat password"
+               required>
+        <input id="id_image" type="file" class="" name="image">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <p class="register-error">{{ error }}</p>
+            {% endfor %}
+        {% endfor %}
+
+        {% if form.non_field_errors %}
+            <span>{{ form.non_field_errors }}</span>
+        {% endif %}
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Change</button>
+
+    </form>
+
+
+
+
+
+
+
+
+{% endblock %}
