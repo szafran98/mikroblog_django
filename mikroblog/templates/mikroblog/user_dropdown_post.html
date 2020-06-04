@@ -31,5 +31,6 @@
     </a>
 </div>
 {% if post.author == user %}
-    <a href="{% url 'delete' post.id %}" style="float: right;"><i class="fas fa-trash-alt" title="Delete"></i></a>
+    <a href="#" onclick="deletePost({{ post.id }})" style="float: right;"><i class="fas fa-trash-alt"
+                                                                             title="Delete"></i></a>
 {% endif %}

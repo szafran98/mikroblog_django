@@ -1,9 +1,11 @@
 {% if user.is_authenticated %}
-    <form id="add-comment-form" method="POST"
+    <form id="add-comment-form{{ post.id }}" method="POST"
           style="margin: auto; max-width: 600px; margin-bottom: 10px;">{% csrf_token %}
         <input type="text" name="to_post" style="visibility: hidden; position: absolute; width: 1px; height: 1px;"
                value="{{ post.id }}">
-        <input type="text" name="content_comment" placeholder="Type here" class="form-control" required>
+        <input type="text" onkeyup="commentCounter({{ post.id }}, this)" onfocusin="commentOnFocusCreate({{ post.id }})"
+               onfocusout="commentOnFocusRemove({{ post.id }}, this)" maxlength="100" name="content_comment"
+               placeholder="Type here" class="form-control" required>
         <button class="btn btn-lg btn-primary btn-block" type="submit" style="visibility: hidden; position: absolute;">
             Add Comment
         </button>

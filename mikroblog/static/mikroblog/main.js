@@ -1,19 +1,15 @@
 function time2TimeAgo(ts) {
 
-
     let d = new Date();
     let nowTs = d.getTime() / 1000;
     let seconds = nowTs - ts;
 
-    // more that two days
     if (seconds > 30 * 24 * 3600) {
         return Math.floor(seconds / (30 * 24 * 3600)) + " months ago";
     }
-    // a day
     if (seconds > 7 * 24 * 3600) {
         return Math.floor(seconds / (7 * 24 * 3600)) + " weeks ago";
     }
-
     if (seconds > 24 * 3600) {
         return Math.floor(seconds / (24 * 3600)) + " days ago";
     }
@@ -26,7 +22,6 @@ function time2TimeAgo(ts) {
     if (seconds < 60) {
         return "Less than a minute";
     }
-
 }
 
 
@@ -39,6 +34,7 @@ function dropDownPost(author, postId) {
         document.querySelector(array[0]).classList.remove("show");
         array.pop();
     }
+
     let username;
     if (author instanceof HTMLCollection) {
         username = author[0].classList[1];
@@ -46,7 +42,6 @@ function dropDownPost(author, postId) {
         username = author.id;
     }
     let post = 'entry' + postId;
-
 
     let selector = `div.myDropdown.${username}.${post}`;
     document.querySelector(`div.myDropdown.${username}.${post}`).classList.toggle("show");
@@ -62,7 +57,6 @@ function dropDownComment(author, commentId) {
         array.pop();
     }
 
-
     let comment = 'entry' + commentId;
     let username = author[0].id;
     let selector = `div.myDropdown.${username}.${comment}`;
@@ -73,11 +67,11 @@ function dropDownComment(author, commentId) {
 
 }
 
+
 window.onclick = function (event) {
 
     if (!document.getElementsByClassName(`autorwpisu${entryId}`)[0].contains(event.target)) {
         let dropdowns = document.getElementsByClassName(`entry${entryId} dropdown-content`);
-        //let i;
         for (let i = 0; i < dropdowns.length; i++) {
             let openDropdown = dropdowns[i];
             if (openDropdown.classList.contains('show')) {
@@ -85,6 +79,7 @@ window.onclick = function (event) {
             }
         }
     }
+
 }
 
 

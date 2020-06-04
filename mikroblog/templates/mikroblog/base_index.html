@@ -3,6 +3,7 @@
 {% block content %}
 
     <div class="container" id="container" style="margin-top: 80px;">
+
         {% block profile_info %}
         {% endblock %}
         {% block tag_info %}
@@ -18,7 +19,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: {% url 'PostLikeToggle' %},
+                url: {% url 'post_like_toggle' %},
                 data: {
                     'post_id': postId,
                     'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
@@ -27,92 +28,83 @@
                 dataType: 'html'
             });
 
-            function likePost(data, jqXHR) {
-                let dataa = $.parseJSON(data);
+            function likePost(data) {
+                let likeJson = $.parseJSON(data);
+                let specificLike = document.getElementById(`numOfLikes${postId}`);
+                specificLike.innerText = likeJson.numOfLikes.toString();
 
-                let x = document.getElementById(`numOfLikes${postId}`);
-                x.innerText = dataa.numOfLikes.toString();
-
-
-                if (dataa['liked']) {
+                if (likeJson['liked']) {
                     document.getElementById(`thumb${postId}`).style.color = "white";
-
-
                 } else {
                     document.getElementById(`thumb${postId}`).style.color = "green";
                 }
             }
         }
 
-
         function getNotifications() {
 
-            let where_to_add = document.getElementById('notifications');
-            where_to_add.querySelectorAll('*').forEach(element => {
+            let whereToAdd = document.getElementById('notifications');
+            whereToAdd.querySelectorAll('*').forEach(element => {
                 element.remove();
             });
-            where_to_add.style = 'right: -100%; top: 100%; width: 450px;';
+            whereToAdd.style = 'right: -100%; top: 100%; width: 450px;';
 
             $.ajax({
-                type: 'POST',
+                type: 'GET',
                 url: {% url 'check_notifications' %},
                 data: {
                     'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
                 },
-                success: Get,
+                success: createNotifications,
                 dataType: 'html'
             });
 
-            function Get(data, jqXHR) {
+            function createNotifications(data) {
                 let notificationsJson = JSON.parse(data);
                 let notifications = notificationsJson['notifications'];
-                console.log(notifications);
 
                 if (notifications.length < 1) {
-                    where_to_add.style = 'width: fit-content; right: -1%; top: 100%;';
+                    whereToAdd.style = 'width: fit-content; right: -1%; top: 100%;';
                     let div = document.createElement('div');
-                    let elementToAppend = '<span style="color: black;">No notifications</span>';
-                    div.innerHTML = elementToAppend;
+                    div.innerHTML = '<span style="color: black;">No notifications</span>';
                     div.style = 'text-align: center;'
-                    where_to_add.appendChild(div);
+                    whereToAdd.appendChild(div);
                 } else {
-
-                    notifications.forEach((element) => {
-                        console.log(element);
+                    notifications.forEach(element => {
                         let div = document.createElement('div');
                         let elementToAppend = `<a href=/post/${element.where} style="width: inherit;">${element.from} wspomniał o tobie w swoim poście.</a>`;
                         let deleteNotificationButton = document.createElement('div');
-                        //deleteNotificationButton.innerHTML = `<a href=/notification/delete/${element.id}><i class="fas fa-ban"></i></a>`;
                         deleteNotificationButton.innerHTML = `<a id="${element.id}" onclick="deleteNotification(this.id)"><i class="fas fa-ban"></i></a>`;
-
                         div.innerHTML = elementToAppend;
                         div.style = 'width: inherit; display: flex; float: right; cursor: pointer;';
-
-                        where_to_add.appendChild(div);
+                        whereToAdd.appendChild(div);
                         div.appendChild(deleteNotificationButton);
-
                     });
                 }
-                document.querySelector(`div.myDropdown.notifications`).classList.toggle("show");
             }
+
+            document.querySelector(`div.myDropdown.notifications`).classList.toggle("show");
         }
 
         function deleteNotification(id) {
-            let idNot = id;
-            console.log(idNot);
+            let notificationId = id;
+
             $.ajax({
-                type: 'POST',
-                url: `/notification/delete/${idNot}`,
+                type: 'DELETE',
+                url: `/notification/delete/${notificationId}`,
+                headers: {
+                    "X-CSRFToken": $('input[name=csrfmiddlewaretoken]').val(),
+                },
                 data: {
-                    'id': idNot,
-                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                    'id': notificationId,
+                    //'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
                 },
                 success: deleteNotificationRow,
                 dataType: 'html',
             });
 
             function deleteNotificationRow() {
-                let notToDelete = document.getElementById(`${idNot}`);
+                let notToDelete = document.getElementById(`${notificationId}`);
                 notToDelete.remove();
                 getNotifications();
                 document.querySelector(`div.myDropdown.notifications`).classList.toggle("show");
@@ -120,34 +112,32 @@
         }
 
         function getBlacklist() {
-            let where_to_add = document.getElementById('blacklist');
-            where_to_add.querySelectorAll('*').forEach(element => {
+            let whereToAdd = document.getElementById('blacklist');
+            whereToAdd.querySelectorAll('*').forEach(element => {
                 element.remove();
             });
-            where_to_add.style = 'width: 200px; left: -10%; top: 100%;';
+            whereToAdd.style = 'width: 200px; left: -10%; top: 100%;';
 
             $.ajax({
-                type: 'POST',
+                type: 'GET',
                 url: {% url 'check_blacklist' %},
                 data: {
                     'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
                 },
-                success: get,
+                success: createBlacklist,
                 dataType: 'html',
             });
 
-            function get(data) {
+            function createBlacklist(data) {
                 let blackListJson = JSON.parse(data);
                 let blackList = blackListJson['blackList']
-                console.log(blackList);
 
                 if (blackList.length < 1) {
-                    where_to_add.style = 'width: fit-content; right: 1%; top: 100%;';
+                    whereToAdd.style = 'width: fit-content; right: 1%; top: 100%;';
                     let div = document.createElement('div');
-                    let elementToAppend = '<span style="color: black;">No users in blacklist</span>';
-                    div.innerHTML = elementToAppend;
+                    div.innerHTML = '<span style="color: black;">No users in blacklist</span>';
                     div.style = 'text-align: center;'
-                    where_to_add.appendChild(div);
+                    whereToAdd.appendChild(div);
                 } else {
                     blackList.forEach(element => {
                         let div = document.createElement('div');
@@ -156,7 +146,7 @@
                         let removeFromBlacklistButton = document.createElement('div');
                         removeFromBlacklistButton.innerHTML = `<a id="${element.id}" onclick="removeFromBlacklist(this.id)" style="cursor: pointer;"><i class="fas fa-ban"></i></a>`;
                         div.innerHTML = elementToAppend;
-                        where_to_add.appendChild(div);
+                        whereToAdd.appendChild(div);
                         div.appendChild(removeFromBlacklistButton);
                     });
                 }
@@ -165,13 +155,16 @@
         }
 
         function removeFromBlacklist(id) {
-            console.log(id);
+
             $.ajax({
-                type: 'POST',
+                type: 'DELETE',
                 url: `blacklist/remove/${id}`,
+                headers: {
+                    "X-CSRFToken": $('input[name=csrfmiddlewaretoken]').val(),
+                },
                 data: {
                     'id': id,
-                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                    //'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
                 },
                 success: deleteBlacklistRow,
                 dataType: 'html',
@@ -182,9 +175,50 @@
                 let rowToDelete = document.getElementById(`${id}`);
                 rowToDelete.remove();
                 getBlacklist();
-                document.querySelector(`div.myDropdown.blacklist`).classList.toggle("show");
+
+            }
+
+            document.querySelector(`div.myDropdown.blacklist`).classList.toggle("show");
+        }
+
+        function deletePost(id) {
+            $.ajax({
+                type: 'DELETE',
+                url: `delete/${id}`,
+                headers: {
+                    "X-CSRFToken": $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                data: {'id': id},
+                success: deletePostHtml,
+                dataType: 'html',
+            })
+
+            function deletePostHtml() {
+                document.getElementById(`wpis${id}`).remove();
             }
         }
+
+        function postCounter(msg) {
+            document.getElementById('counter_div').innerHTML = msg.value.length + '/300';
+        }
+
+        function commentOnFocusCreate(id) {
+            let commentForm = document.getElementById(`add-comment-form${id}`);
+            let counterDiv = document.createElement('div');
+            counterDiv.innerHTML = '0/100';
+            counterDiv.id = `comment-counter${id}`;
+            commentForm.appendChild(counterDiv);
+        }
+
+        function commentOnFocusRemove(id, input) {
+            input.value = '';
+            document.getElementById(`comment-counter${id}`).remove();
+        }
+
+        function commentCounter(id, msg) {
+            document.getElementById(`comment-counter${id}`).innerHTML = msg.value.length + '/100';
+        }
+
     </script>
 
 {% endblock %}

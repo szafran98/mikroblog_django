@@ -1,6 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse, response
-from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, redirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.http import JsonResponse
+from django.shortcuts import render, HttpResponseRedirect, redirect
 from django.urls import reverse
 from .models import Post, Comment, TalkAbout
 from accounts.models import CustomUser
@@ -9,250 +13,108 @@ from .forms import AddPostForm, AddCommentForm
 
 # Create your views here.
 
-def index(request):
-    new_post = None
-    new_comment = None
+def view_common(url, request, tag=None, username=None, id=None):
+    post_form = AddPostForm(request.POST or None, instance=request.user)
+    comment_form = AddCommentForm(request.POST or None, instance=request.user)
+
     if request.method == 'POST':
-        post_form = AddPostForm(request.POST)
-        comment_form = AddCommentForm(request.POST)
         # FORMULARZ DODAWANIA POSTU
         if post_form.is_valid():
-            new_post = post_form.save(commit=False)
-            new_post.author = request.user
-            new_post.tags = ''
-            # content = new_post.content_post
-            content = ''
-            # CHECK TAGS
-            for word in new_post.content_post.split():
-                if '#' in word:
-                    # tag_length = len(word) + 1
-                    new_post.tags += f"{word} "
-                    content += f"{word} "
-                    # new_post.content_post = new_post.content_post[:-tag_length]
-                else:
-                    content += f"{word} "
-            # CHECK ADDED NOTIFICATION
-
-            new_post.content_post = content
-            new_post.save()
-
-            for word in content.split():
-                if '@' in word:
-                    print(word)
-                    user_to_notificate = CustomUser.objects.get(username=word[1:])
-
-                    new_notification = TalkAbout()
-                    new_notification.where = new_post
-                    new_notification._from = new_post.author
-                    new_notification.to = user_to_notificate
-                    new_notification.sended = False
-                    print(new_notification)
-                    new_notification.save()
-
-            post_form = AddPostForm()
+            post_form.save()
+            # create_notifications(post_form.instance)
 
         # FORMULARZ DODAWANIA KOMENTARZA
         if comment_form.is_valid():
-            new_comment = comment_form.save(commit=False)
-            new_comment.author = request.user
-            # new_comment.to_post = Post.objects.get()
-            new_comment.save()
-            comment_form = AddCommentForm()
-    else:
-        post_form = AddPostForm()
-        comment_form = AddCommentForm()
+            comment_form.save()
 
     if request.user.is_authenticated:
-        logged_user = CustomUser.objects.get(id=request.user.id)
-        blocked_users = logged_user.blocked.all()
-        posts = Post.objects.exclude(author__in=blocked_users)
-        print(blocked_users)
-        posts = posts.order_by('-pub_date')
+        posts = Post.get_posts_except_blocked(request.user)
+        comments = Comment.objects.all().order_by('-pub_date')
     else:
-        posts = Post.objects.all()
-        posts = posts.order_by('-pub_date')
+        posts = Post.objects.all().order_by('-pub_date')
+        comments = Comment.objects.all().order_by('-pub_date')
 
-    comments = Comment.objects.all()
-    comments = comments.order_by("-pub_date")
+    parameters = {'posts': posts, 'comments': comments, 'post_form': post_form, 'comment_form': comment_form}
 
-    # post_likes = post.liked.count()
+    if tag:
+        posts_on_tag = Post.get_posts_on_specific_tag(tag, user=request.user)
+        parameters.update({'actual_tag': tag, 'posts': posts_on_tag})
 
-    return render(request, 'mikroblog/index.html', {'posts': posts, 'comments': comments,
-                                                    'post_form': post_form, 'comment_form': comment_form})
+    if username:
+        try:
+            filtered_posts = Post.get_user_posts(username)
+            user_data = CustomUser.objects.get(username=username)
+            user_comments_count = Comment.get_user_comment_count(username)
+            values_to_update = {'user_data': user_data, 'user_comments_count': user_comments_count,
+                                'posts': filtered_posts}
+            parameters.update(values_to_update)
+        except ObjectDoesNotExist:
+            messages.add_message(request, messages.ERROR, 'User does not exist!')
+            return HttpResponseRedirect(reverse('index'))
+
+    if id:
+        try:
+            specific_post = Post.get_specific_post(id)
+            comments_to_post = Comment.get_comments_to_post(specific_post)
+            parameters['post'] = specific_post
+            parameters['comments'] = comments_to_post
+        except ObjectDoesNotExist:
+            messages.add_message(request, messages.ERROR, 'Post does not exist!')
+            return HttpResponseRedirect(reverse('index'))
+
+    return render(request, url, parameters)
+
+
+def index(request):
+    return view_common('mikroblog/index.html', request)
 
 
 def tag_view(request, tag):
-    # tag = request.get_full_path()
-    new_post = None
-    new_comment = None
-    if request.method == 'POST':
-        post_form = AddPostForm(request.POST)
-        comment_form = AddCommentForm(request.POST)
-        # FORMULARZ DODAWANIA POSTU
-        if post_form.is_valid():
-            new_post = post_form.save(commit=False)
-            new_post.author = request.user
-            new_post.tags = ''
-            # content = new_post.content_post
-            content = ''
-            for word in new_post.content_post.split():
-                if '#' in word:
-                    # tag_length = len(word) + 1
-                    new_post.tags += f"{word} "
-                    # new_post.content_post = new_post.content_post[:-tag_length]
-                else:
-                    content += f"{word} "
-            new_post.content_post = content
-            new_post.save()
-            post_form = AddPostForm()
-
-        # FORMULARZ DODAWANIA KOMENTARZA
-        if comment_form.is_valid():
-            new_comment = comment_form.save(commit=False)
-            new_comment.author = request.user
-            # new_comment.to_post = Post.objects.get()
-            new_comment.save()
-            comment_form = AddCommentForm()
-    else:
-        post_form = AddPostForm()
-        comment_form = AddCommentForm()
-
-    posts = Post.objects.all().filter(tags__contains=tag)
-    posts = posts.order_by('-pub_date')
-    actual_tag = tag
-    comments = Comment.objects.all()
-    comments = comments.order_by("-pub_date")
-
-    return render(request, 'mikroblog/tag.html', {'posts': posts, 'actual_tag': actual_tag, 'comments': comments,
-                                                  'post_form': post_form, 'comment_form': comment_form})
+    return view_common('mikroblog/tag.html', request, tag=tag)
 
 
 def profile_view(request, username):
-    new_post = None
-    new_comment = None
-    if request.method == 'POST':
-        post_form = AddPostForm(request.POST)
-        comment_form = AddCommentForm(request.POST)
-        # FORMULARZ DODAWANIA POSTU
-        if post_form.is_valid():
-            new_post = post_form.save(commit=False)
-            new_post.author = request.user
-            new_post.tags = ''
-            # content = new_post.content_post
-            content = ''
-            for word in new_post.content_post.split():
-                if '#' in word:
-                    # tag_length = len(word) + 1
-                    new_post.tags += f"{word} "
-                    # new_post.content_post = new_post.content_post[:-tag_length]
-                else:
-                    content += f"{word} "
-            new_post.content_post = content
-            new_post.save()
-            post_form = AddPostForm()
-
-        # FORMULARZ DODAWANIA KOMENTARZA
-        if comment_form.is_valid():
-            new_comment = comment_form.save(commit=False)
-            new_comment.author = request.user
-            # new_comment.to_post = Post.objects.get()
-            new_comment.save()
-            comment_form = AddCommentForm()
-    else:
-        post_form = AddPostForm()
-        comment_form = AddCommentForm()
-
-    posts = Post.objects.all().filter(author__username=username)
-    posts = posts.order_by('-pub_date')
-    user_profile_data = CustomUser.objects.get(username=username)
-    comments = Comment.objects.all()
-    comments = comments.order_by("-pub_date")
-    user_comments_count = comments.filter(author__username=username).count()
-
-    return render(request, 'mikroblog/profile.html',
-                  {'posts': posts, 'user_profile_data': user_profile_data, 'comments': comments,
-                   'post_form': post_form, 'comment_form': comment_form,
-                   'user_comments_count': user_comments_count})
+    return view_common('mikroblog/profile.html', request, username=username)
 
 
 def post_view(request, id):
-    new_comment = None
-    if request.method == 'POST':
-        comment_form = AddCommentForm(request.POST)
-
-        # FORMULARZ DODAWANIA KOMENTARZA
-        if comment_form.is_valid():
-            new_comment = comment_form.save(commit=False)
-            new_comment.author = request.user
-            # new_comment.to_post = Post.objects.get()
-            new_comment.save()
-            comment_form = AddCommentForm()
-    else:
-        comment_form = AddCommentForm()
-
-    post = Post.objects.get(id=id)
-    # post = post.order_by('-pub_date')
-
-    comments = Comment.objects.all().filter(to_post=post)
-    comments = comments.order_by("-pub_date")
-
-    return render(request, 'mikroblog/post_details.html',
-                  {'post': post, 'comments': comments, 'comment_form': comment_form})
+    return view_common('mikroblog/post_details.html', request, id=id)
 
 
 @login_required
 def delete_post(request, id):
     post_to_delete = Post.objects.get(id=id)
-    if post_to_delete.author.username == request.user.username:
+    if request.method == 'DELETE':
         post_to_delete.delete()
-    return HttpResponseRedirect(reverse('index'))
+
+        return redirect('index')
 
 
 @login_required
 def edit_post(request, id):
-    post_to_edit = Post.objects.get(id=id)
-    post_comments = Comment.objects.all().filter(to_post=post_to_edit)
+    edited_post = Post.objects.get(id=id)
+    post_form = AddPostForm(request.POST or None, instance=request.user)
     if request.POST:
-        post_form = AddPostForm(request.POST)
-
         if post_form.is_valid():
-            form_data = post_form.save(commit=False)
-            post_to_edit.author = request.user
-            post_to_edit.tags = ''
-            # content = new_post.content_post
-            content = ''
-            for word in form_data.content_post.split():
-                if '#' in word:
-                    # tag_length = len(word) + 1
-                    post_to_edit.tags += f"{word} "
-                    # new_post.content_post = new_post.content_post[:-tag_length]
-                else:
-                    content += f"{word} "
-            post_to_edit.content_post = content
-            post_to_edit.save()
-            post_form = AddPostForm()
+            new_content_post = post_form.cleaned_data.get('content_post')
+            Post.update_post_content(id, new_content_post)
+            # create_notifications(edited_post)
             return HttpResponseRedirect(reverse('post', kwargs={'id': id}))
-    else:
-        post_form = AddPostForm()
 
-    return render(request, 'mikroblog/edit.html',
-                  {'post': post_to_edit, 'comments': post_comments, 'post_form': post_form})
+    return render(request, 'mikroblog/edit.html', {'post': edited_post, 'post_form': post_form})
 
 
 @login_required
-def PostLikeToggle(request):
+def post_like_toggle(request):
     user = request.user
 
     if request.method == 'POST':
         post_id = request.POST['post_id']
-
         post = Post.objects.get(id=post_id)
-
         _liked = user in post.liked.all()
 
         if _liked:
             post.liked.remove(user)
-
         else:
             post.liked.add(user)
 
@@ -265,24 +127,22 @@ def PostLikeToggle(request):
 def check_notifications(request):
     user = request.user
 
-    if request.method == 'POST':
+    if request.method == 'GET':
         notifications = TalkAbout.objects.all().filter(to=user)
         json_to_send = []
 
         for notification in notifications:
-            tmp = {'id': notification.id, 'from': notification._from.username, 'to': notification.to.username,
-                   'where': notification.where.id}
-            json_to_send.append(tmp)
+            json = {'id': notification.id, 'from': notification._from.username, 'to': notification.to.username,
+                    'where': notification.where.id}
+            json_to_send.append(json)
 
-        print(json_to_send)
         return JsonResponse({'notifications': json_to_send})
 
 
 @login_required
 def delete_notification(request, id):
     notification_to_delete = TalkAbout.objects.get(id=id)
-    print(id)
-    if request.method == 'POST':
+    if request.method == 'DELETE':
         notification_to_delete.delete()
 
     return HttpResponseRedirect(reverse('index'))
@@ -302,16 +162,15 @@ def block_user(request, id):
 def check_blacklist(request):
     user = CustomUser.objects.get(id=request.user.id)
 
-    if request.method == 'POST':
+    if request.method == 'GET':
         user_blacklist = user.blocked.all()
 
         json_to_send = []
 
         for blacklist_entry in user_blacklist:
-            tmp = {'id': blacklist_entry.id, 'blocked': blacklist_entry.username}
-            json_to_send.append(tmp)
+            json = {'id': blacklist_entry.id, 'blocked': blacklist_entry.username}
+            json_to_send.append(json)
 
-        print(json_to_send)
         return JsonResponse({'blackList': json_to_send})
 
 
@@ -319,8 +178,19 @@ def check_blacklist(request):
 def remove_from_blacklist(request, id):
     user = CustomUser.objects.get(id=request.user.id)
 
-    if request.method == 'POST':
+    if request.method == 'DELETE':
         blacklist_entry_to_delete = user.blocked.get(id=id)
         user.blocked.remove(blacklist_entry_to_delete)
 
         return HttpResponseRedirect(reverse('index'))
+
+
+@receiver(post_save, sender=Post)
+def create_notifications(instance, **kwargs):
+    for word in instance.content_post.split():
+        if '@' in word:
+            try:
+                user_to_notificate = CustomUser.objects.get(username=word[1:])
+                TalkAbout(where=instance, _from=instance.author, to=user_to_notificate).save()
+            except ObjectDoesNotExist:
+                return HttpResponseRedirect(reverse('index'))

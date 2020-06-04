@@ -15,7 +15,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(max_length=30, unique=True)
     email = models.EmailField(_('email address'), unique=True)
     image = ResizedImageField(size=[45, 45], quality=100, force_format='PNG', upload_to='avatars/', blank=True,
-                              null=True)
+                              null=True, default='default-avatar.png')
     blocked = models.ManyToManyField('accounts.CustomUser')
 
     USERNAME_FIELD = 'email'

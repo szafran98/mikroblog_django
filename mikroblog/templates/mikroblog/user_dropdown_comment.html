@@ -48,8 +48,12 @@
                style="cursor: pointer;">{{ comment.author }}:</a>
             <div class="myDropdown {{ comment.author }} entry{{ comment.id }} dropdown-content"
                  id="{{ comment.author }}" style="z-index: 100;">
-                <a href="{% url 'profile' comment.author %}">Profile</a>
-                <a href="{% url 'block_user' comment.author.id %}">Block user</a>
+                {% if user == comment.author %}
+                    <a href="{% url 'profile' comment.author %}">Profile</a>
+                {% else %}
+                    <a href="{% url 'profile' comment.author %}">Profile</a>
+                    <a href="{% url 'block_user' comment.author.id %}">Block user</a>
+                {% endif %}
             </div>
         </div>
         {{ comment.content_comment }}
