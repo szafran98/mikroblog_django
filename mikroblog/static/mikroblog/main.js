@@ -86,9 +86,9 @@ window.onclick = function (event) {
 window.onload = () => {
     let allTimesToChange = document.querySelectorAll('time');
     allTimesToChange.forEach((element) => {
-        let timeToChange = element.innerHTML;
+        let timeToChange = element.textContent;
         let toNumber = parseInt(timeToChange);
-        element.innerHTML = time2TimeAgo(toNumber);
+        element.textContent = time2TimeAgo(toNumber);
     });
 
 }

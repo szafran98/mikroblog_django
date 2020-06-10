@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -6,7 +8,10 @@ from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from django.urls import reverse
-from .models import Post, Comment, TalkAbout
+from django.views.decorators.http import require_http_methods
+from django.views.generic import UpdateView
+
+from .models import Post, Comment, TalkAbout, get_posts_on_specific_tag
 from accounts.models import CustomUser
 from .forms import AddPostForm, AddCommentForm
 
@@ -21,14 +26,15 @@ def view_common(url, request, tag=None, username=None, id=None):
         # FORMULARZ DODAWANIA POSTU
         if post_form.is_valid():
             post_form.save()
-            # create_notifications(post_form.instance)
 
         # FORMULARZ DODAWANIA KOMENTARZA
         if comment_form.is_valid():
             comment_form.save()
 
     if request.user.is_authenticated:
-        posts = Post.get_posts_except_blocked(request.user)
+        # user = CustomUser.objects.get(username=request.user)
+        user = CustomUser.get_user(request.user)
+        posts = Post.get_posts_except_blocked(user).order_by('-pub_date')
         comments = Comment.objects.all().order_by('-pub_date')
     else:
         posts = Post.objects.all().order_by('-pub_date')
@@ -37,15 +43,15 @@ def view_common(url, request, tag=None, username=None, id=None):
     parameters = {'posts': posts, 'comments': comments, 'post_form': post_form, 'comment_form': comment_form}
 
     if tag:
-        posts_on_tag = Post.get_posts_on_specific_tag(tag, user=request.user)
+        posts_on_tag = get_posts_on_specific_tag(tag, posts)
         parameters.update({'actual_tag': tag, 'posts': posts_on_tag})
 
     if username:
         try:
-            filtered_posts = Post.get_user_posts(username)
-            user_data = CustomUser.objects.get(username=username)
-            user_comments_count = Comment.get_user_comment_count(username)
-            values_to_update = {'user_data': user_data, 'user_comments_count': user_comments_count,
+            user = CustomUser.get_user(username=username)
+            filtered_posts = Post.get_user_posts(user)
+            user_comments_count = Comment.get_user_comment_count(user)
+            values_to_update = {'user_data': user, 'user_comments_count': user_comments_count,
                                 'posts': filtered_posts}
             parameters.update(values_to_update)
         except ObjectDoesNotExist:
@@ -56,8 +62,7 @@ def view_common(url, request, tag=None, username=None, id=None):
         try:
             specific_post = Post.get_specific_post(id)
             comments_to_post = Comment.get_comments_to_post(specific_post)
-            parameters['post'] = specific_post
-            parameters['comments'] = comments_to_post
+            parameters.update({'post': specific_post, 'comments': comments_to_post})
         except ObjectDoesNotExist:
             messages.add_message(request, messages.ERROR, 'Post does not exist!')
             return HttpResponseRedirect(reverse('index'))
@@ -81,27 +86,26 @@ def post_view(request, id):
     return view_common('mikroblog/post_details.html', request, id=id)
 
 
+
 @login_required
 def delete_post(request, id):
-    post_to_delete = Post.objects.get(id=id)
     if request.method == 'DELETE':
-        post_to_delete.delete()
+        Post.objects.get(id=id).delete()
 
         return redirect('index')
 
-
 @login_required
 def edit_post(request, id):
-    edited_post = Post.objects.get(id=id)
+    edited_post = Post.get_specific_post(id)
     post_form = AddPostForm(request.POST or None, instance=request.user)
-    if request.POST:
+    if request.method == 'POST':
         if post_form.is_valid():
             new_content_post = post_form.cleaned_data.get('content_post')
-            Post.update_post_content(id, new_content_post)
-            # create_notifications(edited_post)
+            edited_post.update_post_content(new_content_post)
+
             return HttpResponseRedirect(reverse('post', kwargs={'id': id}))
 
-    return render(request, 'mikroblog/edit.html', {'post': edited_post, 'post_form': post_form})
+    return render(request, 'mikroblog/post_edit_form.html', {'post': edited_post, 'post_form': post_form})
 
 
 @login_required
@@ -109,7 +113,8 @@ def post_like_toggle(request):
     user = request.user
 
     if request.method == 'POST':
-        post_id = request.POST['post_id']
+        post_id = request.POST.get('post_id')
+        print(request.POST)
         post = Post.objects.get(id=post_id)
         _liked = user in post.liked.all()
 
@@ -118,7 +123,7 @@ def post_like_toggle(request):
         else:
             post.liked.add(user)
 
-        post_likes = post.liked.count()
+        post_likes = post.total_likes
 
         return JsonResponse({'liked': _liked, 'numOfLikes': post_likes})
 
@@ -139,13 +144,14 @@ def check_notifications(request):
         return JsonResponse({'notifications': json_to_send})
 
 
+@require_http_methods(['DELETE'])
 @login_required
 def delete_notification(request, id):
     notification_to_delete = TalkAbout.objects.get(id=id)
     if request.method == 'DELETE':
         notification_to_delete.delete()
 
-    return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('index'))
 
 
 @login_required
@@ -185,12 +191,3 @@ def remove_from_blacklist(request, id):
         return HttpResponseRedirect(reverse('index'))
 
 
-@receiver(post_save, sender=Post)
-def create_notifications(instance, **kwargs):
-    for word in instance.content_post.split():
-        if '@' in word:
-            try:
-                user_to_notificate = CustomUser.objects.get(username=word[1:])
-                TalkAbout(where=instance, _from=instance.author, to=user_to_notificate).save()
-            except ObjectDoesNotExist:
-                return HttpResponseRedirect(reverse('index'))
