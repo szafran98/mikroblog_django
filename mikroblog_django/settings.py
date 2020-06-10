@@ -122,3 +122,15 @@ USE_TZ = False
 # STATIC_URL = '/mikroblog/static/'
 STATIC_URL = '/static/mikroblog/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'mikroblog')
+
+
+if sys.argv[1] == 'test':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+else:
+    DATABASES = {'default': 'psql://user:password@server:5432/database'}
+
