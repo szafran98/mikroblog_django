@@ -1,7 +1,7 @@
 # Mikroblog Django
 > Django microbloggin app. User can create, read, update and delete posts. Write on any tags etc.
 
-> Live: (http://szafran1308.pythonanywhere.com)
+> Live: http://szafran1308.pythonanywhere.com
 
 ## Table of contents
 * [Technologies](#technologies)
